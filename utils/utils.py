@@ -8,7 +8,7 @@ from config.config import Config
 
 
 def setup_selenium_firefox():
-    ser = Service("driverbrower/geckodriver.exe")
+    ser = Service("D:/trungphan/auto_post_comment/driverbrower/geckodriver.exe")
     firefox_options = FirefoxOptions()
     firefox_options.set_preference("media.volume_scale", "0.0")
     firefox_options.set_preference('devtools.jsonview.enabled', False)
@@ -34,7 +34,6 @@ def setup_logging():
             logging.StreamHandler()
         ]
     )
-
 
 setup_logging()
 

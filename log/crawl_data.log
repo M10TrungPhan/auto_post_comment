@@ -26,3 +26,4 @@
 2022-12-15 11:59:41,308 | ManageAccountFacebook | [INFO] | GET TOKEN ACCESS FROM FACEBOOK WITH ACCOUNT txnnxt2k@gmail.com
 2022-12-15 12:00:02,962 | ManageAccountFacebook | [INFO] | GET TOKEN ACCESS FROM FACEBOOK WITH ACCOUNT lionel_messsi_91_2000@proton.me
 2022-12-15 12:00:33,853 | ManageAccountFacebook | [INFO] | GET TOKEN ACCESS FROM FACEBOOK WITH ACCOUNT harkdead1@proton.me
+2022-12-15 17:46:33,131 | urllib3.connectionpool | [WARNING] | Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ProtocolError('Connection aborted.', ConnectionResetError(10054, 'An existing connection was forcibly closed by the remote host', None, 10054, None))': /session/006fe07c-c89e-4a92-aa95-636a766ffb2f/window

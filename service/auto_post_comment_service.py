@@ -1,16 +1,14 @@
 import time
 
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 import re
 
-
+from object.class_facebook import ClassFacebook
 from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 from database.facebook_db import *
 from service.update_dialogue import UpdateDialogue
+from utils.utils import setup_selenium_firefox
 
 
 class AutoCommentService:
@@ -21,22 +19,7 @@ class AutoCommentService:
         self.main_comment_col = MainCommentFaceBookCollection()
         self.dialogue_col = DialogueCollection()
         self.data_fb_col = FacebookCollection()
-
-    @staticmethod
-    def setup_selenium_firefox():
-        ser = Service(r"D:\trungphan\auto_post_comment\driverbrower\geckodriver.exe")
-        firefox_options = FirefoxOptions()
-        firefox_options.set_preference("media.volume_scale", "0.0")
-        firefox_options.set_preference('devtools.jsonview.enabled', False)
-        firefox_options.set_preference('dom.webnotifications.enabled', False)
-        firefox_options.add_argument("--test-type")
-        firefox_options.add_argument('--ignore-certificate-errors')
-        firefox_options.add_argument('--disable-extensions')
-        firefox_options.add_argument('disable-infobars')
-        firefox_options.add_argument("--incognito")
-        # firefox_options.add_argument("--headless")
-        driver = webdriver.Firefox(service=ser, options=firefox_options)
-        return driver
+        self.class_facebook = ClassFacebook()
 
     def get_random_account_active(self):
         return self.account_fb_col.get_random_account_active()
@@ -65,7 +48,7 @@ class AutoCommentService:
         return link_reply
 
     def access_url_comment(self, url_comment, account):
-        self.driver = self.setup_selenium_firefox()
+        self.driver = setup_selenium_firefox()
         res = ""
         for _ in range(5):
             try:
@@ -87,10 +70,7 @@ class AutoCommentService:
 
     def show_more_text(self):
         list_button_more = self.driver.find_elements(By.CLASS_NAME,
-                                                value="x1i10hfl xjbqb8w x6umtig x1b1mbwd xaqea5y xav7gou x9f619 "
-                                                      "x1ypdohk xt0psk2 xe8uvvx xdj266r x11i5rnm xat24cr x1mh8g0r "
-                                                      "xexx8yu x4uap5 x18d9i69 xkhd6sd x16tdsg8 x1hl2dhg xggy1nq "
-                                                      "x1a2a7pz xt0b8zv xzsf02u x1s688f".replace(" ", "."))
+                                                     value=self.class_facebook.list_button_more_text.replace(" ", "."))
         while len(list_button_more):
             for each in list_button_more:
                 try:
@@ -102,24 +82,21 @@ class AutoCommentService:
                     pass
             number_button_more_old = len(list_button_more)
             list_button_more = self.driver.find_elements(By.CLASS_NAME,
-                                                    value="x1i10hfl xjbqb8w x6umtig x1b1mbwd xaqea5y xav7gou x9f619 "
-                                                          "x1ypdohk xt0psk2 xe8uvvx xdj266r x11i5rnm xat24cr x1mh8g0r "
-                                                          "xexx8yu x4uap5 x18d9i69 xkhd6sd x16tdsg8 x1hl2dhg xggy1nq "
-                                                          "x1a2a7pz xt0b8zv xzsf02u x1s688f".replace(" ", "."))
+                                                         value=self.class_facebook.list_button_more_text.replace(" ", "."))
             if number_button_more_old == len(list_button_more):
                 break
 
     def show_all_comments(self):
-        box_comment = self.driver.find_element(By.CLASS_NAME, value="x1jx94hy x12nagc".replace(" ", "."))
+        box_comment = self.driver.find_element(By.CLASS_NAME, value=self.class_facebook.box_total_comment.replace(" ", "."))
 
-        element_comment = box_comment.find_element(By.CLASS_NAME, value="x1iorvi4 x1pi30zi xjkvuk6 x1swvt13".
+        element_comment = box_comment.find_element(By.CLASS_NAME, value=self.class_facebook.box_type_comment.
                                                    replace(" ", "."))
         next_element = element_comment.find_element(By.XPATH, value="./following-sibling::ul")
 
         child_element = next_element.find_element(By.TAG_NAME, "li")
 
         list_button_more = child_element.find_elements(By.CLASS_NAME,
-                                                     value="x78zum5 x1w0mnb xeuugli".replace(" ", "."))
+                                                     value=self.class_facebook.list_button_more.replace(" ", "."))
         time_loop = 0
         while len(list_button_more) > 0:
             for each in list_button_more:
@@ -134,7 +111,7 @@ class AutoCommentService:
             for _ in range(5):
                 try:
                     list_button_more = child_element.find_elements(By.CLASS_NAME,
-                                                         value="x78zum5 x1w0mnb xeuugli".replace(
+                                                         value=self.class_facebook.list_button_more.replace(
                                                              " ", "."))
                     # self.scroll(1000)
                 except:
@@ -146,7 +123,7 @@ class AutoCommentService:
 
     def detect_box_comment_to_reply(self, content_comment):
         list_comment = self.driver.find_elements(By.CLASS_NAME,
-                                            value="x1r8uery x1iyjqo2 x6ikm8r x10wlt62 x1pi30zi".replace(" ", "."))
+                                                 value=self.class_facebook.small_box_main_reply.replace(" ", "."))
         for each in list_comment:
             if content_comment in each.text:
                 # print("MATCH 1")
@@ -158,21 +135,17 @@ class AutoCommentService:
                 break
         return box_comment_select
 
-    @staticmethod
-    def click_reply_button(comment_select):
+    def click_reply_button(self, comment_select):
         list_button = comment_select.find_elements(By.CLASS_NAME,
-                                                   value="x1i10hfl xjbqb8w x6umtig x1b1mbwd xaqea5y xav7gou x9f619 "
-                                                         "xe8uvvx xdj266r x11i5rnm xat24cr x1mh8g0r xexx8yu x4uap5 "
-                                                         "x18d9i69 xkhd6sd x16tdsg8 x1hl2dhg xggy1nq x1a2a7pz xi81zsa "
-                                                         "x1ypdohk x1rg5ohu x117nqv4 x1n2onr6 xt0b8zv".replace(" ", "."))
+                                                   value=self.class_facebook.button_reply.replace(" ", "."))
         for each in list_button:
             if re.search(r"Phản hồi|Reply", each.text, flags=re.IGNORECASE) is not None:
                 button_select = each
         button_select.click()
 
-    def detect_box_reply(self, ):
+    def detect_box_reply(self):
         list_box_reply = self.driver.find_elements(By.CLASS_NAME,
-                                              value="xzsf02u x1a2a7pz x1n2onr6 x14wi4xw notranslate".replace(" ", "."))
+                                                   value=self.class_facebook.box_to_reply.replace(" ", "."))
         for each in list_box_reply:
             if len(each.text):
                 reply_box_select = each
@@ -191,7 +164,7 @@ class AutoCommentService:
 
     def detect_list_reply_update(self, content_comment):
         soup = self.parse_html()
-        list_comment = soup.find_all("div", class_="x1r8uery x1iyjqo2 x6ikm8r x10wlt62 x1pi30zi")
+        list_comment = soup.find_all("div", class_=self.class_facebook.small_box_main_comment)
         box_comment_select = None
         for each_comment in list_comment:
             comment = self.get_data_for_box_comment(each_comment)
@@ -201,8 +174,7 @@ class AutoCommentService:
             content_comment_new = re.sub(r" +", " ", content_comment)
             if content_comment_new in comment["text"]:
                 box_comment_select = each_comment
-                print(each_comment.text)
-                print("000000000000000000000")
+                # print(each_comment.text)
                 break
         if box_comment_select is None:
             return
@@ -226,10 +198,10 @@ class AutoCommentService:
         list_mini_reply = []
         for each in list_mini_reply_tag:
             tag_mini_reply = each.find("div",
-                                       class_="x1n2onr6 x1iorvi4 x4uap5 x18d9i69 xurb0ha x78zum5 x1q0g3np x1a2a7pz")
+                                       class_=self.class_facebook.big_box_mini_reply)
             if tag_mini_reply is None:
                 continue
-            tag_mini_reply = tag_mini_reply.find("div", class_="x1r8uery x1iyjqo2 x6ikm8r x10wlt62 x1pi30zi")
+            tag_mini_reply = tag_mini_reply.find("div", class_=self.class_facebook.small_box_mini_reply)
             if tag_mini_reply is None:
                 continue
             mini_reply = self.get_data_for_box_comment(tag_mini_reply)
@@ -237,7 +209,7 @@ class AutoCommentService:
         return list_mini_reply
 
     def get_data_for_box_comment(self, box_comment):
-        user_main_comment = box_comment.find("span", class_="xt0psk2")
+        user_main_comment = box_comment.find("span", class_=self.class_facebook.user_comment)
         text_comment = self.get_text_for_box_comment(box_comment)
         tags = self.get_tags_for_box_comment(box_comment)
         attachment = self.get_attachment_for_box_comment(box_comment)
@@ -255,42 +227,31 @@ class AutoCommentService:
 
     @staticmethod
     def process_text_before_compare(text):
-        return re.sub(r"\s+", " ", text)
+        return re.sub(r"\s+", " ", str(text))
 
-    @staticmethod
-    def get_tags_for_box_comment(box_text_comment):
+    def get_tags_for_box_comment(self, box_text_comment):
         tags = []
-        text_main_comment_box = box_text_comment.find("div", class_="xdj266r x11i5rnm xat24cr x1mh8g0r x1vvkbs")
+        text_main_comment_box = box_text_comment.find("div", class_=self.class_facebook.text_main_comment_box_1)
         if text_main_comment_box is None:
-            text_main_comment_box = box_text_comment.find("div", class_="x11i5rnm xat24cr x1mh8g0r x1vvkbs xdj266r")
+            text_main_comment_box = box_text_comment.find("div", class_=self.class_facebook.text_main_comment_box_2)
         if text_main_comment_box is None:
             return tags
         tags_element = box_text_comment.findAll("a",
-                                                class_="x1i10hfl xjbqb8w x6umtig x1b1mbwd xaqea5y xav7gou x9f619 "
-                                                       "x1ypdohk xt0psk2 xe8uvvx xdj266r x11i5rnm xat24cr x1mh8g0r "
-                                                       "xexx8yu x4uap5 x18d9i69 xkhd6sd x16tdsg8 x1hl2dhg xggy1nq "
-                                                       "x1a2a7pz xt0b8zv xzsf02u x1s688f")
+                                                class_=self.class_facebook.tag_elements)
         for tag in tags_element:
             tags.append(tag.text)
         return tags
 
-    @staticmethod
-    def get_attachment_for_box_comment(box_comment):
-        box_attachment = box_comment.findChild("div", class_="x78zum5 xv55zj0 x1vvkbs", recursive=False)
+    def get_attachment_for_box_comment(self, box_comment):
+        box_attachment = box_comment.findChild("div", class_=self.class_facebook.box_attachment, recursive=False)
         data_image = None
         data_link = None
         if box_attachment is None:
             return {"image": data_image, "link": data_link}
         box_image_attachment = box_attachment.find("a",
-                                                   class_="x1i10hfl xjbqb8w x6umtig x1b1mbwd xaqea5y xav7gou x9f619 "
-                                                          "x1ypdohk xt0psk2 xe8uvvx xdj266r x11i5rnm xat24cr x1mh8g0r "
-                                                          "xexx8yu x4uap5 x18d9i69 xkhd6sd x16tdsg8 x1hl2dhg "
-                                                          "xggy1nq x1a2a7pz")
+                                                   class_=self.class_facebook.box_image_attachment)
         box_link_attachment = box_attachment.find("a",
-                                                  class_="x1i10hfl xjbqb8w x6umtig x1b1mbwd xaqea5y xav7gou x9f619 "
-                                                         "x1ypdohk xt0psk2 xe8uvvx xdj266r x11i5rnm xat24cr x1mh8g0r "
-                                                         "xexx8yu x4uap5 x18d9i69 xkhd6sd x16tdsg8 x1hl2dhg xggy1nq "
-                                                         "x1a2a7pz x1ey2m1c xds687c x10l6tqk x17qophe x13vifvy xi2jdih")
+                                                  class_=self.class_facebook.box_link_attachment)
         if box_image_attachment is not None:
             image_element = box_image_attachment.find("img")
             if image_element is not None:
@@ -306,21 +267,19 @@ class AutoCommentService:
                 data_link = {"source": link, "description": link_description}
         return {"image": data_image, "link": data_link}
 
-    @staticmethod
-    def get_link_to_reply(box_comment):
-        box_link = box_comment.find("a", class_="x1i10hfl xjbqb8w x6umtig x1b1mbwd xaqea5y xav7gou x9f619 x1ypdohk xt0psk2 xe8uvvx xdj266r x11i5rnm xat24cr x1mh8g0r xexx8yu x4uap5 x18d9i69 xkhd6sd x16tdsg8 x1hl2dhg xggy1nq x1a2a7pz xt0b8zv xi81zsa x1fcty0u")
+    def get_link_to_reply(self, box_comment):
+        box_link = box_comment.find("a", class_=self.class_facebook.box_link)
         if box_link is None:
             return None
         link_to_reply = box_link.get("href")
         # print(link_to_reply)
         return link_to_reply
 
-    @staticmethod
-    def get_text_for_box_comment(box_text_comment):
-        text_main_comment_box = box_text_comment.find("div", class_="xdj266r x11i5rnm xat24cr x1mh8g0r x1vvkbs")
+    def get_text_for_box_comment(self, box_text_comment):
+        text_main_comment_box = box_text_comment.find("div", class_=self.class_facebook.text_main_comment_box_1)
         text_comment = ""
         if text_main_comment_box is None:
-            text_main_comment_box = box_text_comment.find("div", class_="x11i5rnm xat24cr x1mh8g0r x1vvkbs xdj266r")
+            text_main_comment_box = box_text_comment.find("div", class_=self.class_facebook.text_main_comment_box_2)
         if text_main_comment_box is None:
             return None
         list_paragraph_element = text_main_comment_box.findAll("div", attrs={"style": "text-align: start;"})
@@ -377,8 +336,8 @@ class AutoCommentService:
             self.send_reply_comment(box_send_reply, content_reply)
             time.sleep(10)
 
-        except:
-
+        except Exception as e:
+            print(e)
             return "FAILED TO POST COMMENT FACEBOOK"
         try:
             # GET LAST MAIN DATA FROM GRAPH API
@@ -399,10 +358,10 @@ class AutoCommentService:
                 self.update_dialogue_service.update_last_main_comment(dialogue_select["comment_id"],
                                                                       last_main_update_from_graph)
                 print("MATCH")
-                self.driver.close()
+                # self.driver.close()
         except Exception as e:
             print(e)
-            self.driver.close()
+            # self.driver.close()
             return "FAILED TO UPDATE DIALOGUE TO DB"
 
         return "POST COMMENT IS SUCCESSFUL"
@@ -413,6 +372,7 @@ if __name__ == "__main__":
     # dialogue_col = DialogueCollection()
     # account_col = AccountFacebookCollection()
     # dialogue = dialogue_col.query_dialogue("2575884495812741_4393653590702480_4393663214034851_4393680047366501")
-    result = auto.auto_post_comment("498287336961883_4220436608080252_4221254654665114_4221267644663815", 0,
-                           "tieng mien nam nghe cute ma", "phudh@proton.me")
+    result = auto.auto_post_comment("498287336961883_4228112633979316_4235699219887324_4237784999678746", 0,
+                           "đã share")
     print(result)
+

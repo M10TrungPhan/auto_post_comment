@@ -54,6 +54,15 @@ class AccountFacebookCollection(metaclass=Singleton):
             return
         return account
 
+    def query_account_follow_username(self, user_name):
+        account = None
+        query_condition = {"user": user_name}
+        for x in self.data_col.find(query_condition):
+            account = x
+        if account is None:
+            return
+        return account
+
     def update_information_account_api(self, account: AccountFacebookRequest):
         id_user = hashlib.md5(account.username.encode("utf-8")).hexdigest()
         account_in_db = self.query_account_follow_id(id_user)
