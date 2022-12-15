@@ -82,86 +82,89 @@ class GenerateDialogue:
 
     # GENERATE DIALOGUE FROM ONE POST
     def generate_dialogue_for_one_post_facebook(self, file, *args):
-        data = json.load(open(file, "r", encoding="utf-8"))
-        if "updated_time" not in data.keys():
-            return []
-        if data["updated_time"] is None:
-            return []
+        try:
+            data = json.load(open(file, "r", encoding="utf-8"))
+            if "updated_time" not in data.keys():
+                return []
+            if data["updated_time"] is None:
+                return []
 
-        if not self.check_time_post_update(data["updated_time"]):
-            return []
-        # LOAD DATA FROM FACEBOOK
-        post_id = data["_id"]
-        list_dialogue = []
-        # print(f"""NUMBER MAIN COMMENT: {len(data["comment"])}""")
-        # ITERATE EACH MAIN COMMENT
-        for main_comment in data["comment"]:
-            list_last_reply = []
-            main_comment_id = self.get_comment_id(main_comment["link_to_reply"])
-            # print("++++++++++")
-            # print(f"MAIN_COMMENT_ID: {main_comment_id}")
-            # print(f"""NUMBER DIALOGUE COMMENT: {len(main_comment["replies"])}""")
-            # ITERATE MAIN REPLY
-            if not len(main_comment["replies"]):
-                continue
-            data_last_comment_graph_api = self.update_dialogue.get_last_comment_for_main_comment_graph_api(
-                main_comment_id)
-            if data_last_comment_graph_api == "COMMENT DELETE":
-                # print("MAIN COMMENT CAN BE DELETE")
-                continue
-            if not(self.check_time_main_comment_update(data_last_comment_graph_api["created_time"])):
-                continue
-            # print(data_last_comment_graph_api)
-            for main_reply in main_comment["replies"]:
-                # print("**********")
-                # print(f"""NUMBER COMMENT IN DIALOGUE: {len(main_reply["replies"])}""")
-                # print(main_reply["text"])
-                list_last_reply.append(main_reply["text"])
-                # GET DIALOGUE > 3 COMMENT
-                if not len(main_reply["replies"]):
-                    # print("DIALOGUE < 3 comment")
+            if not self.check_time_post_update(data["updated_time"]):
+                return []
+            # LOAD DATA FROM FACEBOOK
+            post_id = data["_id"]
+            list_dialogue = []
+            # print(f"""NUMBER MAIN COMMENT: {len(data["comment"])}""")
+            # ITERATE EACH MAIN COMMENT
+            for main_comment in data["comment"]:
+                list_last_reply = []
+                main_comment_id = self.get_comment_id(main_comment["link_to_reply"])
+                # print("++++++++++")
+                # print(f"MAIN_COMMENT_ID: {main_comment_id}")
+                # print(f"""NUMBER DIALOGUE COMMENT: {len(main_comment["replies"])}""")
+                # ITERATE MAIN REPLY
+                if not len(main_comment["replies"]):
                     continue
-                main_reply_id = self.get_reply_id(main_reply["link_to_reply"])
-                dialogue_id = str(post_id) + "_" + main_comment_id + "_" + main_reply_id
-                # print(f"DIALOGUE_ID: {dialogue_id}")
-                # CHECK DIALOGUE IN DATABASE / ONLY CREATE DIALOGUE NOT IN DATABASE
-                if len(self.dialogue_col.query_dialogue(dialogue_id)):
-                    # print("DIALOGUE EXISTED")
+                data_last_comment_graph_api = self.update_dialogue.get_last_comment_for_main_comment_graph_api(
+                    main_comment_id)
+                if data_last_comment_graph_api == "COMMENT DELETE":
+                    # print("MAIN COMMENT CAN BE DELETE")
                     continue
-                dialogue_new = main_comment.copy()
-                dialogue_new["updated_time_dialogue"] = data_last_comment_graph_api["created_time"]
-                dialogue_new["status_dialogue"] = "Normal"
-                dialogue_new["comment_id"] = main_comment_id
-                dialogue_new["_id"] = dialogue_id
-                dialogue_new["reply_id"] = main_reply_id
-                main_reply["link_to_reply"] = self.process_link_reply(main_reply["link_to_reply"])
-                dialogue_new["replies"] = main_reply
-                dialogue_new["link_to_reply"] = self.process_link_comment(dialogue_new["link_to_reply"])
-                if not len(args):
-                    dialogue_new["account_comment"] = None
-                else:
-                    dialogue_new["account_comment"] = args[0]
-                list_last_reply.append(str(main_reply["replies"][-1]["text"]))
-                # CREATE DIALOGUE
-                self.save_dialogue(dialogue_new)
-                print("CREATE DIALOGUE")
-                list_dialogue.append(dialogue_new)
-            # CHECK LAST COMMENT IN MAIN COMMENT IF IT ON ANY DIALOGUE
-            data_last_comment_graph_api = self.update_dialogue.\
-                get_last_comment_for_main_comment_graph_api(main_comment_id)
-            # CHECK MAIN COMMENT CAN BE DELETE => REMOVE ALL DIALOGUE OF ITS MAIN COMMENT
-            # if data_last_comment_graph_api == "COMMENT DELETE":
-            #     self.remove_all_dialogue_of_list_comment(main_comment_id)
-            #     print("COMMENT CAN BE DELETE")
-            #     continue
+                if not(self.check_time_main_comment_update(data_last_comment_graph_api["created_time"])):
+                    continue
+                # print(data_last_comment_graph_api)
+                for main_reply in main_comment["replies"]:
+                    # print("**********")
+                    # print(f"""NUMBER COMMENT IN DIALOGUE: {len(main_reply["replies"])}""")
+                    # print(main_reply["text"])
+                    list_last_reply.append(main_reply["text"])
+                    # GET DIALOGUE > 3 COMMENT
+                    if not len(main_reply["replies"]):
+                        # print("DIALOGUE < 3 comment")
+                        continue
+                    main_reply_id = self.get_reply_id(main_reply["link_to_reply"])
+                    dialogue_id = str(post_id) + "_" + main_comment_id + "_" + main_reply_id
+                    # print(f"DIALOGUE_ID: {dialogue_id}")
+                    # CHECK DIALOGUE IN DATABASE / ONLY CREATE DIALOGUE NOT IN DATABASE
+                    if len(self.dialogue_col.query_dialogue(dialogue_id)):
+                        # print("DIALOGUE EXISTED")
+                        continue
+                    dialogue_new = main_comment.copy()
+                    dialogue_new["updated_time_dialogue"] = data_last_comment_graph_api["created_time"]
+                    dialogue_new["status_dialogue"] = "Normal"
+                    dialogue_new["comment_id"] = main_comment_id
+                    dialogue_new["_id"] = dialogue_id
+                    dialogue_new["reply_id"] = main_reply_id
+                    main_reply["link_to_reply"] = self.process_link_reply(main_reply["link_to_reply"])
+                    dialogue_new["replies"] = main_reply
+                    dialogue_new["link_to_reply"] = self.process_link_comment(dialogue_new["link_to_reply"])
+                    if not len(args):
+                        dialogue_new["account_comment"] = None
+                    else:
+                        dialogue_new["account_comment"] = args[0]
+                    list_last_reply.append(str(main_reply["replies"][-1]["text"]))
+                    # CREATE DIALOGUE
+                    self.save_dialogue(dialogue_new)
+                    print("CREATE DIALOGUE")
+                    list_dialogue.append(dialogue_new)
+                # CHECK LAST COMMENT IN MAIN COMMENT IF IT ON ANY DIALOGUE
+                data_last_comment_graph_api = self.update_dialogue.\
+                    get_last_comment_for_main_comment_graph_api(main_comment_id)
+                # CHECK MAIN COMMENT CAN BE DELETE => REMOVE ALL DIALOGUE OF ITS MAIN COMMENT
+                # if data_last_comment_graph_api == "COMMENT DELETE":
+                #     self.remove_all_dialogue_of_list_comment(main_comment_id)
+                #     print("COMMENT CAN BE DELETE")
+                #     continue
 
-            text_last_comment = data_last_comment_graph_api["message"]
-            if text_last_comment in list_last_reply:
-                # UPDATE MAIN COMMENT
-                # print(f"UPDATE MAIN COMMENT {main_comment_id}")
-                self.main_comment_dialogue.update_data_main_comment_field_last_comment(main_comment_id,
-                                                                                       data_last_comment_graph_api)
-        return list_dialogue
+                text_last_comment = data_last_comment_graph_api["message"]
+                if text_last_comment in list_last_reply:
+                    # UPDATE MAIN COMMENT
+                    # print(f"UPDATE MAIN COMMENT {main_comment_id}")
+                    self.main_comment_dialogue.update_data_main_comment_field_last_comment(main_comment_id,
+                                                                                           data_last_comment_graph_api)
+            return list_dialogue
+        except:
+            return  []
 
     def remove_all_dialogue_of_list_comment(self, comment_id):
         list_dialogue_remove = self.dialogue_col.query_all_dialogue_of_main_comment(comment_id)
@@ -172,7 +175,7 @@ class GenerateDialogue:
 
     @staticmethod
     def process_time_updated(string_time):
-        print(string_time)
+        # print(string_time)
         regex_result = re.search(r"\+\d+", string_time)
         if regex_result is not None:
             start, end = regex_result.span()
@@ -224,8 +227,10 @@ class GenerateDialogue:
         print(f"TOTAL NUMBER DIALOGUE CREATE {number_dialogue}")
 
 
+
+
 if __name__ == "__main__":
-    path_save_data = r"\\172.29.13.24\tmtaishare\Data\Data_GROUP_FACEBOOK_2\Group Tinh tế\\"
+    path_save_data = r"\\172.29.13.24\tmtaishare\Data\Data_GROUP_FACEBOOK_2\Cộng Đồng Chia Sẻ - Nâng Tầm Kiến Thức (XGR)\\"
     generate_service = GenerateDialogue(path_save_data)
     generate_service.generate_dialogue_from_path_folder()
 

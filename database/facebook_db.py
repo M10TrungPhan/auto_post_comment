@@ -1,9 +1,10 @@
 import random
+import hashlib
 
+from object.account_fb_request import AccountFacebookRequest
 from database.mongo_client import MongoDatabase
 from config.config import Config
 from object.singleton import Singleton
-
 
 class FacebookCollection(metaclass=Singleton):
     def __init__(self):
@@ -53,14 +54,51 @@ class AccountFacebookCollection(metaclass=Singleton):
             return
         return account
 
-    def query_account_follow_username(self, username):
-        account = None
-        query_condition = {"user": username}
-        for x in self.data_col.find(query_condition):
-            account = x
-        if account is None:
-            return
-        return account
+    def update_information_account_api(self, account: AccountFacebookRequest):
+        id_user = hashlib.md5(account.username.encode("utf-8")).hexdigest()
+        account_in_db = self.query_account_follow_id(id_user)
+        if account_in_db is None:
+            return f"User not existed"
+        old_password = account_in_db["password"]
+        old_status = account_in_db["status"]
+        old_token_access = account_in_db["token_access"]
+        old_cookies = account_in_db["cookies"]
+        old_account_name = account_in_db["account_name"]
+        if account.password is None:
+            update_password = old_password
+        else:
+            update_password = account.password
+        if account.status is None:
+            update_status = old_status
+        else:
+            update_status = account.status
+        if account.cookies is None:
+            update_cookies = old_cookies
+        else:
+            update_cookies = account.cookies
+
+        if account.token_access is None:
+            update_token_access = old_token_access
+        else:
+            update_token_access = account.token_access
+
+        if account.account_name is None:
+            update_account_name = old_account_name
+        else:
+            update_account_name = account.account_name
+
+        query_condition = {"_id": id_user}
+        new_values = {"$set": {"password": update_password, "status": update_status,
+                               "token_access": update_token_access, "cookies": update_cookies,
+                               "account_name": update_account_name}}
+        self.data_col.update_one(query_condition, new_values)
+        return f"UPDATE SUCCESSFUL FOR USER {account.username}"
+
+    def get_information_all_account(self):
+        list_account = []
+        for x in self.data_col.find():
+            list_account.append(x)
+        return list_account
 
     def get_all_account_active(self):
         list_account = []
@@ -73,6 +111,7 @@ class AccountFacebookCollection(metaclass=Singleton):
         list_account = self.get_all_account_active()
         # print(list_account[5])
         return list_account[random.randint(0, len(list_account)-1)]
+        # return  list_account[5]
 
 
 class TimePostUpdateCollection(metaclass=Singleton):

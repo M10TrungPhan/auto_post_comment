@@ -74,6 +74,9 @@ class UpdateDialogue:
         data_database = self.main_comment_col.query_comment(main_comment_id)
         if not data_database:
             return False
+        print("+++++++")
+        print(data_database["last_comment"]["message"])
+        print(data_graph_api["message"])
         if data_database["last_comment"]["message"] == data_graph_api["message"]:
             return True
         return False
@@ -144,6 +147,7 @@ class UpdateDialogue:
             if data_last_comment_graph_api == "COMMENT DELETE":
                 print("MAIN COMMENT CAN BE DELETE")
                 self.remove_all_dialogue_of_list_comment(main_comment_id)
+                continue
             print(f"MAIN COMMENT ID : {main_comment_id}")
             list_dialogue_for_main_comment = list(self.dialogue_col.query_all_dialogue_waiting_response(main_comment_id))
             if not (self.check_time_main_comment_update(data_last_comment_graph_api["created_time"])):
@@ -198,9 +202,11 @@ class UpdateDialogue:
             if data_last_comment_graph_api == "COMMENT DELETE":
                 print("MAIN COMMENT CAN BE DELETE")
                 self.remove_all_dialogue_of_list_comment(main_comment_id)
+                continue
             print(main_comment_id)
             list_dialogue_for_main_comment = self.get_all_dialogue_of_main_comment(main_comment_id)
             # CHECK TIME UPDATE < 2 WEEKS
+            print(data_last_comment_graph_api)
             if not (self.check_time_main_comment_update(data_last_comment_graph_api["created_time"])):
                 print(f"SET ALL DIALOGUE OF COMMENT {main_comment_id} NOT TOO LONG RESPONSE")
                 for each_dialogue in list_dialogue_for_main_comment:
@@ -254,11 +260,20 @@ class UpdateDialogue:
     def update_last_main_comment(self, main_comment_id,data_last_comment_graph_api):
         self.main_comment_col.update_data_main_comment_field_last_comment(main_comment_id, data_last_comment_graph_api)
 
+    # REMOVE DIALOGUE TOO LONG RESPONSE
+    def remove_dialogue_too_long_response(self):
+        list_dialogue = self.dialogue_col.query_all_dialogue_follow_status("too long response")
+        for dialogue in list_dialogue:
+            self.dialogue_col.delete_dialogue(dialogue["_id"])
+            print(f"""REMOVE DIALOGUE {dialogue["_id"]}""")
+
 
 if __name__ == "__main__":
 
     update = UpdateDialogue()
+    # update.remove_dialogue_too_long_response()
     while True:
         update.update_all_dialogue_in_database()
+        update.remove_dialogue_too_long_response()
         # update.update_all_dialogue_waiting_response()
         time.sleep(60*30)
