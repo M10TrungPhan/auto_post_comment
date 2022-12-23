@@ -6,10 +6,10 @@ from selenium.webdriver.common.by import By
 import re
 import pymongo
 import random
-from object.class_facebook import ClassFacebook
+from auto_post_comment.object.class_facebook import ClassFacebook
 
 from bs4 import BeautifulSoup
-from utils.utils import setup_selenium_firefox
+from auto_post_comment.utils.utils import setup_selenium_firefox
 
 
 class GetDialogue:

@@ -1,5 +1,5 @@
-from database.mongo_client import MongoDatabase
-from config.config import Config
+from auto_post_comment.database.mongo_client import MongoDatabase
+from auto_post_comment.config.config import Config
 
 
 class FanpageDB:

@@ -1,12 +1,12 @@
-from config.config import Config
-from object.singleton import Singleton
-from object.account_fb_request import AccountFacebookRequest
-from database.facebook_db import AccountFacebookCollection
+from auto_post_comment.config.config import Config
+from auto_post_comment.object.singleton import Singleton
+from auto_post_comment.object.account_fb_request import AccountFacebookRequest
+from auto_post_comment.database.facebook_db import AccountFacebookCollection
 import hashlib
 import logging
 import concurrent.futures
 
-from utils.utils import setup_selenium_firefox
+from auto_post_comment.utils.utils import setup_selenium_firefox
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 import time
@@ -140,6 +140,21 @@ class ManageAccountFacebook(Thread, metaclass=Singleton):
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(list_account)) as executor:
             [executor.submit(self.update_information_for_account, account["user"],
                              account["password"]) for account in list_account]
+
+    def update_information_for_all_account_to_comment(self):
+        self.logger.info("UPDATE INFORMATION FOR ALL ACCOUNT COMMENT")
+        list_account = self.account_fb_collection.get_information_all_account()
+        list_account_new = []
+        for account in list_account:
+            if account["status"] == "comment":
+                list_account_new.append(account)
+        print()
+        for account in list_account_new:
+            self.update_information_for_account(account["user"], account["password"])
+        # with concurrent.futures.ThreadPoolExecutor(max_workers=len(list_account)) as executor:
+        #     [executor.submit(self.update_information_for_account, account["user"],
+        #                      account["password"]) for account in list_account]
+
 
     def check_account_block(self):
         return False

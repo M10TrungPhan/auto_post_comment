@@ -1,4 +1,4 @@
-from object.singleton import Singleton
+from auto_post_comment.object.singleton import Singleton
 
 
 class BaseSingleton(metaclass=Singleton):

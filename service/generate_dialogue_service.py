@@ -3,10 +3,10 @@ import re
 import json
 import time
 
-from database.facebook_db import DialogueCollection
-from database.facebook_db import MainCommentFaceBookCollection
-from service.update_dialogue import UpdateDialogue
-from config.config import Config
+from auto_post_comment.database.facebook_db import DialogueCollection
+from auto_post_comment.database.facebook_db import MainCommentFaceBookCollection
+from auto_post_comment.service.update_dialogue import UpdateDialogue
+from auto_post_comment.config.config import Config
 
 
 class GenerateDialogue:
@@ -130,6 +130,8 @@ class GenerateDialogue:
                         # print("DIALOGUE EXISTED")
                         continue
                     dialogue_new = main_comment.copy()
+                    dialogue_new["content_post"] = data["content"]
+
                     dialogue_new["updated_time_dialogue"] = data_last_comment_graph_api["created_time"]
                     dialogue_new["status_dialogue"] = "Normal"
                     dialogue_new["comment_id"] = main_comment_id
@@ -227,10 +229,8 @@ class GenerateDialogue:
         print(f"TOTAL NUMBER DIALOGUE CREATE {number_dialogue}")
 
 
-
-
 if __name__ == "__main__":
-    path_save_data = r"\\172.29.13.24\tmtaishare\Data\Data_GROUP_FACEBOOK_2\Cộng Đồng Chia Sẻ - Nâng Tầm Kiến Thức (XGR)\\"
+    path_save_data = r"\\172.29.13.24\tmtaishare\Data\Data_GROUP_FACEBOOK_2\Phản Biện Không Thuyết Phục_ Xóa Group! (XGR)/text/"
     generate_service = GenerateDialogue(path_save_data)
     generate_service.generate_dialogue_from_path_folder()
 

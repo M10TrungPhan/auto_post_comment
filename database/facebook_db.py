@@ -1,10 +1,11 @@
 import random
 import hashlib
 
-from object.account_fb_request import AccountFacebookRequest
-from database.mongo_client import MongoDatabase
-from config.config import Config
-from object.singleton import Singleton
+from auto_post_comment.object.account_fb_request import AccountFacebookRequest
+from auto_post_comment.database.mongo_client import MongoDatabase
+from auto_post_comment.config.config import Config
+from auto_post_comment.object.singleton import Singleton
+
 
 class FacebookCollection(metaclass=Singleton):
     def __init__(self):

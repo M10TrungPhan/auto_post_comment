@@ -4,7 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
-from config.config import Config
+from auto_post_comment.config.config import Config
 
 
 def setup_selenium_firefox():

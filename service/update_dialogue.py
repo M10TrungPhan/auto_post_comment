@@ -4,11 +4,11 @@ import time
 import requests
 import json
 
-from object.replies import GetDialogue
-from database.facebook_db import AccountFacebookCollection
-from database.facebook_db import DialogueCollection
-from database.facebook_db import MainCommentFaceBookCollection
-from config.config import Config
+from auto_post_comment.object.replies import GetDialogue
+from auto_post_comment.database.facebook_db import AccountFacebookCollection
+from auto_post_comment.database.facebook_db import DialogueCollection
+from auto_post_comment.database.facebook_db import MainCommentFaceBookCollection
+from auto_post_comment.config.config import Config
 
 
 class UpdateDialogue:
@@ -271,9 +271,10 @@ class UpdateDialogue:
 if __name__ == "__main__":
 
     update = UpdateDialogue()
-    # update.remove_dialogue_too_long_response()
+    update.remove_dialogue_too_long_response()
+    update.update_all_dialogue_waiting_response()
     while True:
-        update.update_all_dialogue_in_database()
-        update.remove_dialogue_too_long_response()
-        # update.update_all_dialogue_waiting_response()
-        time.sleep(60*30)
+        # update.update_all_dialogue_in_database()
+        # update.remove_dialogue_too_long_response()
+        update.update_all_dialogue_waiting_response()
+        time.sleep(60*3)

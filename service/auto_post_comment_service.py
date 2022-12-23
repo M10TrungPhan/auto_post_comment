@@ -7,8 +7,8 @@ from object.class_facebook import ClassFacebook
 from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 from database.facebook_db import *
-from service.update_dialogue import UpdateDialogue
-from utils.utils import setup_selenium_firefox
+from auto_post_comment.service.update_dialogue import UpdateDialogue
+from auto_post_comment.utils.utils import setup_selenium_firefox
 
 
 class AutoCommentService:
@@ -376,3 +376,16 @@ if __name__ == "__main__":
                            "đã share")
     print(result)
 
+    def update_information_for_all_account_to_comment(self):
+        self.logger.info("UPDATE INFORMATION FOR ALL ACCOUNT COMMENT")
+        list_account = self.account_fb_collection.get_information_all_account()
+        list_account_new = []
+        for account in list_account:
+            if account["status"] == "comment":
+                list_account_new.append(account)
+        print()
+        for account in list_account_new:
+            self.update_information_for_account(account["user"], account["password"])
+        # with concurrent.futures.ThreadPoolExecutor(max_workers=len(list_account)) as executor:
+        #     [executor.submit(self.update_information_for_account, account["user"],
+        #                      account["password"]) for account in list_account]
